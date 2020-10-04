@@ -34,24 +34,16 @@ class Queue_update(APIView):
  		serializer = QueueSerializer(queobj)
  		return Response(serializer.data)
 
- 	def put(self,request,pk):
- 		# queue_id= request.data['queue_id']
- 		queobj = self.get_object(pk)
- 		# print(queobj)
+ 	def put(self,request,pk): 		
+ 		queobj = self.get_object(pk) 		
  		if queobj==0:
  			return Response(data='queue_id is not found')
- 		serializer=QueueSerializer(queobj,data=request.data)
- 		# print(queobj.queue_size)
- 		# print(serializer.data['queue_size'])
- 		# print(request.data['queue_size'])
+ 		serializer=QueueSerializer(queobj,data=request.data) 		
  		current_time=datetime.datetime.now()
  		prev_time=current_time-datetime.timedelta(minutes=5)
  		que1= QueueHistory.objects.filter(queue_id=pk)
  		que1=que1.filter(last_update_at__gte=prev_time)
  		que1=que1.aggregate(Max('queue_size'))['queue_size__max']
- 		# print(que1)
- 		# print(prev_time)
- 		# print(current_time)
  		if que1 is None:
  			return Response("entry is not allowed")
  		if serializer.is_valid() and (que1-50 >= int(request.data['queue_size']) or que1 is None):
