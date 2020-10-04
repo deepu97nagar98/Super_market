@@ -44,9 +44,7 @@ class Queue_update(APIView):
  		que1= QueueHistory.objects.filter(queue_id=pk)
  		que1=que1.filter(last_update_at__gte=prev_time)
  		que1=que1.aggregate(Max('queue_size'))['queue_size__max']
- 		if que1 is None:
- 			return Response("entry is not allowed")
- 		if serializer.is_valid() and (que1-50 >= int(request.data['queue_size']) or que1 is None):
+ 		if serializer.is_valid() and (que1 is None or(que1-50 >= (request.data['queue_size']) )):
  			serializer.save() 
  			hit = QueueHistory(queue_id  = pk , queue_size = request.data['queue_size'])
  			hit.save()
