@@ -27,22 +27,20 @@ class Queue_update(APIView):
  		try:
  			return Queue.objects.get(queue_id=pk)
  		except Queue.DoesNotExist:
- 			raise Http404
+ 			return 0
 
  	def get(self, request, pk, format=None):
  		queobj = self.get_object(pk)
- 		serializer = QueueSerializer(queobj)
- 		return Response(serializer.data)
-
+ 		serializer = QueueSerializer(queobj.data)
+ 		return Response(serializer.data,status=status.HTTP_200_OK)
+ 	
  	def put(self,request,pk): 		
- 		queobj = self.get_object(pk) 		
- 		if queobj==0:
- 			return Response(data='queue_id is not found')
+ 		queobj = self.get_object(pk)  			
+ 		if queobj == 0:
+ 		 	return Response(data='queue_id is not found')
  		serializer=QueueSerializer(queobj,data=request.data) 		
- 		current_time=datetime.datetime.now()
- 		prev_time=current_time-datetime.timedelta(minutes=5)
- 		que1= QueueHistory.objects.filter(queue_id=pk)
- 		que1=que1.filter(last_update_at__gte=prev_time)
+ 		prev_time=datetime.datetime.now()-datetime.timedelta(minutes=5)
+ 		que1= QueueHistory.objects.filter(queue_id=pk,last_update_at__gte=prev_time)
  		que1=que1.aggregate(Max('queue_size'))['queue_size__max']
  		if serializer.is_valid() and (que1 is None or(que1-50 >= (request.data['queue_size']) )):
  			serializer.save() 
@@ -50,7 +48,6 @@ class Queue_update(APIView):
  			hit.save()
  			return Response(serializer.data)
  		return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)	
-
 
 class queue_history(APIView):
 	def get(self,request,pk):
